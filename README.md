@@ -2,13 +2,15 @@
 
 My personal automation scripts to make life in GDPLabs easier.
 
+This repository is mostly a backup, the actual app runs in their own platform.
+
 ## Automation List
 
 ### WFO Day Synchronization
 
 Synchronize WFO Bandung Sheet and GLAIR WFO Sheet from a weekly Slack form questionare.
 
-Triggered as a custom hook event to a GitHub action.
+The workflow lives directly as a Web App defined in Google Apps Script.
 
 ### Weekly Report
 
