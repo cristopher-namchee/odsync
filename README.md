@@ -16,6 +16,8 @@ The workflow lives directly as a Web App defined in Google Apps Script.
 
 Weekly reporter as a n8n script. This repository only stores the exported backup.
 
+Probably not n8n though
+
 ## License
 
 Just steal it bro... No need for permissions or whatchamajit.
