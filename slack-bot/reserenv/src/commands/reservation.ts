@@ -1,6 +1,7 @@
 import type { Context } from 'hono';
 
 import { ENVIRONMENTS } from '../constants';
+import type { Bindings } from '../types';
 
 async function generateEnvironmentTables(
   environments: string[],
@@ -77,7 +78,7 @@ async function generateEnvironmentTables(
   };
 }
 
-export default async function (c: Context) {
+export default async function (c: Context<{ Bindings: Bindings }>) {
   const { text } = await c.req.parseBody();
 
   let environment = '';
