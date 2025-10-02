@@ -27,9 +27,19 @@ This action will fail under the following circumstances:
 
 ### `/unreserve <environment>`
 
-Unreserve an environment.
+Unreserve an environment that's currently being reserved by you.
 
 This action will fail under the following circumstances:
 
 1. The environment is not supported
-2. It's being reserved by other users or **you**
+2. It's being reserved by other users
+
+### `/reservation [environment]`
+
+See reservation for environments. If the `[environment]` parameter is omitted, this command will show reservation status for all available environments.
+
+Unlikely to fail.
+
+## License
+
+This project is licensed under [Unlicensed].

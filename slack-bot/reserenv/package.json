@@ -1,5 +1,5 @@
 {
-	"name": "pinjam-env",
+	"name": "reserenv",
 	"type": "module",
 	"scripts": {
 		"dev": "wrangler dev",
