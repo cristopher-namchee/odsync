@@ -1,21 +1,35 @@
-```txt
-npm install
-npm run dev
-```
+# Reserenv
 
-```txt
-npm run deploy
-```
+A slack bot that shows GLChat environment usage.
 
-[For generating/synchronizing types based on your Worker configuration run](https://developers.cloudflare.com/workers/wrangler/commands/#types):
+> [!WARNING]
+> This bot doesn't correctly synchronize with infra. Therefore, the environment user might be inaccurate!
 
-```txt
-npm run cf-typegen
-```
+## Supported Environments
 
-Pass the `CloudflareBindings` as generics when instantiation `Hono`:
+1. `dev`
+2. `dev2`
+3. `dev3`
 
-```ts
-// src/index.ts
-const app = new Hono<{ Bindings: CloudflareBindings }>()
-```
+> [!NOTE]
+> Other env(s) support will be decided later.
+
+## Commands
+
+### `/reserve <environment>`
+
+Reserve an environment under your name.
+
+This action will fail under the following circumstances:
+
+1. The environment is not supported
+2. It's being reserved by other users or **you**
+
+### `/unreserve <environment>`
+
+Unreserve an environment.
+
+This action will fail under the following circumstances:
+
+1. The environment is not supported
+2. It's being reserved by other users or **you**
