@@ -1,5 +1,5 @@
 {
-	"name": "bot",
+	"name": "sheeterton",
 	"type": "module",
 	"scripts": {
 		"dev": "wrangler dev",
