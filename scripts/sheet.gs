@@ -4,6 +4,7 @@ const bandungSheet = '1XObyMQdM9aFkbyAyg8vMDyYcz9d_WtmlZq3sMihfFQM';
 function parseParams(params) {
   const user = (params?.user ?? [])[0] ?? '';
   const days = params?.days ?? [];
+  const today = (params?.today ?? [])[0] ?? '';
 
   if (!user.trim()) {
     throw new Error('Invalid user ID');
@@ -13,59 +14,26 @@ function parseParams(params) {
     throw new Error('Invalid WFO day');
   }
 
+  if (!today.trim()) {
+    throw new Error('Invalid reference date');
+  }
+
+  const todayDate = new Date(today);
+
+  if (isNaN(todayDate.getTime())) {
+    throw new Error('Invalid reference date');
+  }
+
   return {
     days,
     user,
+    today: todayDate,
   };
 }
 
-function writeGlairSheet(params, nextMonday) {
+function writeGlairSheet(params) {
   const ss = SpreadsheetApp.openById(glairSheet);
   const sheet = ss.getSheetByName('WFO NEW');
-
-  const cell = sheet.createTextFinder(params.user).findNext();
-
-  if (!cell) {
-    throw new Error('User not found');
-  }
-
-  const targetRow = cell.getRow();
-
-  for (const day of [...Array(5).keys()]) {
-    const targetDate = new Date(nextMonday);
-    targetDate.setDate(targetDate.getDate() + day);
-
-    const textValue = `${targetDate.getMonth()}/${targetDate.getDate()}/${targetDate.getFullYear()}`;
-
-    const cell = sheet.createTextFinder(textValue).findNext();
-
-    if (!cell) {
-      continue;
-    }
-
-    const column = cell.getColumn();
-
-    // clear value first
-    sheet.getRange(targetRow, column).setValue(false);
-  }
-
-  for (const day of params.day) {
-    const targetDate = new Date(nextMonday);
-    targetDate.setDate(targetDate.getDate() + day);
-
-    const textValue = `${targetDate.getMonth()}/${targetDate.getDate()}/${targetDate.getFullYear()}`;
-
-    const cell = sheet.createTextFinder(textValue).findNext();
-
-    if (!cell) {
-      continue;
-    }
-
-    const column = cell.getColumn();
-
-    // then set it!
-    sheet.getRange(targetRow, column).setValue(true);
-  }
 }
 
 function doGet(e) {

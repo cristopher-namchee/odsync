@@ -1,23 +1,21 @@
-# GDPLabs Automation Scripts
+```txt
+npm install
+npm run dev
+```
 
-My personal automation scripts to make life in GDPLabs easier.
+```txt
+npm run deploy
+```
 
-This repository is mostly a backup, the actual app runs in their own platform.
+[For generating/synchronizing types based on your Worker configuration run](https://developers.cloudflare.com/workers/wrangler/commands/#types):
 
-## Automation List
+```txt
+npm run cf-typegen
+```
 
-### WFO Day Synchronization
+Pass the `CloudflareBindings` as generics when instantiation `Hono`:
 
-Synchronize WFO Bandung Sheet and GLAIR WFO Sheet from a weekly Slack form questionare.
-
-The workflow lives directly as a Web App defined in Google Apps Script.
-
-### Weekly Report
-
-Weekly reporter as a n8n script. This repository only stores the exported backup.
-
-Probably not n8n though
-
-## License
-
-Just steal it bro... No need for permissions or whatchamajit.
+```ts
+// src/index.ts
+const app = new Hono<{ Bindings: CloudflareBindings }>()
+```
