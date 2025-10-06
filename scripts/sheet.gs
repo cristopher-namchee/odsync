@@ -1,6 +1,9 @@
 const glairSheet = '1yKOIFZ7R67XCjiMc6DwwJicHeLx5iv91lVKAYuYrWuU';
 const bandungSheet = '1XObyMQdM9aFkbyAyg8vMDyYcz9d_WtmlZq3sMihfFQM';
 
+const SLICE_COUNT = 3;
+const SAMPLE = '?user=2007226&days=0&days=1&days=2&today=2025-10-03';
+
 function columnToLetter(column) {
   let letter = '';
 
@@ -49,32 +52,33 @@ function writeGlairSheet(user, today, days) {
   const sheet = ss.getSheetByName('WFO NEW');
 
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
-    .slice(3)
+    .slice(SLICE_COUNT)
     .map(val => new Date(val))
     .filter(val => !isNaN(val.getTime()))
     .map(date => `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`)
 
-  const targetColumns = [];
-  for (const day of days) {
+  const weekColumns = [...Array(5).keys()].map(day => {
     const targetDate = new Date(today);
     targetDate.setDate(targetDate.getDate() + parseInt(day));
 
     const stringDate = `${targetDate.getMonth() + 1}/${targetDate.getDate()}/${targetDate.getFullYear()}`;
     const idx = headers.indexOf(stringDate);
 
-    targetColumns.push(idx);
-  }
+    return idx + SLICE_COUNT;
+  });
 
-  // find row
+  const wfoColumns = days.map(day => weekColumns[day]);
+
+  // find filled rows
   const cell = sheet.createTextFinder(user).findNext();
   const row = cell.getRow();
 
-  const targetCells = targetColumns.map(col => `${columnToLetter(col + 3)}${row}`);
+  const weekCells = weekColumns.map(col => `${columnToLetter(col)}${row}`); 
+  const wfoCells = wfoColumns.map(col => `${columnToLetter(col)}${row}`);
 
   return {
-    targetCells,
-    headers,
-    targetColumns,
+    weekCells,
+    wfoCells,
   };
 }
 
