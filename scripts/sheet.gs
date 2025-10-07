@@ -55,11 +55,13 @@ function writeGlairSheet(user, today, days) {
     .slice(SLICE_COUNT)
     .map(val => new Date(val))
     .filter(val => !isNaN(val.getTime()))
-    .map(date => `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`)
+    .map(date => `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`);
+
+  const searches = [];
 
   const weekColumns = [...Array(5).keys()].map(day => {
     const targetDate = new Date(today);
-    targetDate.setDate(targetDate.getDate() + parseInt(day));
+    targetDate.setDate(targetDate.getDate() + day);
 
     const stringDate = `${targetDate.getMonth() + 1}/${targetDate.getDate()}/${targetDate.getFullYear()}`;
     const idx = headers.indexOf(stringDate);
@@ -78,6 +80,8 @@ function writeGlairSheet(user, today, days) {
 
   return {
     weekCells,
+    today,
+    weekColumns,
     wfoCells,
   };
 }
