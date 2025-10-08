@@ -3,21 +3,10 @@ const bandungSheet = '1XObyMQdM9aFkbyAyg8vMDyYcz9d_WtmlZq3sMihfFQM';
 
 const CLONE_SHEET = '1xt8InCmYc41-9OEr28he4fXr3wYxushskh6bbI3RBMc';
 
-const SLICE_COUNT = 3;
+const GlairColumnOffset = 3;
+const BandungColumnOffset = 4;
+
 const SAMPLE = '?user=2007226&days=0&days=1&days=2&today=2025-10-03';
-
-function columnToLetter(column) {
-  let letter = '';
-
-  while (column > 0) {
-    const mod = (column - 1) % 26;
-    letter = String.fromCharCode(65 + mod) + letter;
-    column = Math.floor((column - mod) / 26);
-  }
-
-  return letter;
-}
-
 
 function parseParams(params) {
   const user = (params?.user ?? [])[0] ?? '';
@@ -51,10 +40,10 @@ function parseParams(params) {
 
 function writeGlairSheet(user, today, days) {
   const ss = SpreadsheetApp.openById(CLONE_SHEET);
-  const sheet = ss.getSheetByName('WFO NEW');
+  const sheet = ss.getSheets()[0];
 
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
-    .slice(SLICE_COUNT)
+    .slice(GlairColumnOffset)
     .map(val => new Date(val))
     .filter(val => !isNaN(val.getTime()))
     .map(date => `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`);
@@ -66,16 +55,15 @@ function writeGlairSheet(user, today, days) {
     const stringDate = `${targetDate.getMonth() + 1}/${targetDate.getDate()}/${targetDate.getFullYear()}`;
     const idx = headers.indexOf(stringDate);
 
-    return idx + SLICE_COUNT + 1; // convert to 1-based index
+    return idx + GlairColumnOffset + 1; // convert to 1-based index
   });
 
   const wfoColumns = days.map(day => weekColumns[day]);
 
   // find filled rows
   const cell = sheet.createTextFinder(user).findNext();
-
   if (!cell) {
-    throw new Error('Cannot find corresponding employee.');
+    throw new Error('Cannot find corresponding employee in global sheet.');
   }
 
   const row = cell.getRow();
@@ -83,6 +71,26 @@ function writeGlairSheet(user, today, days) {
   for (const column of weekColumns) {
     const range = sheet.getRange(row, column);
     range.setValue(wfoColumns.includes(column) ? true : false);
+  }
+}
+
+// Optional, remove this if you want to self-deploy
+function writeBandungSheet(days) {
+  const selfMail = Session.getEffectiveUser().getEmail();
+
+  const ss = SpreadsheetApp.openById(bandungSheet);
+  const sheet = ss.getSheets()[0];
+
+  const userCell = sheet.createTextFinder(selfMail).findNext();
+  if (!userCell) {
+    throw new Error('Cannot find corresponding employee in regional sheet.');
+  }
+
+  const userRow = userCell.getRow();
+
+  for (let inc = 0; inc < 5; inc++) {
+    const range = sheet.getRange(userRow, inc + BandungColumnOffset);
+    range.setValue(days.includes(inc) ? true : false);
   }
 }
 
@@ -94,6 +102,7 @@ function doGet(e) {
     nextWeek.setDate(nextWeek.getDate() + (1 + 7 - nextWeek.getDay()) % 7);
 
     writeGlairSheet(params.user, nextWeek, params.days);
+    writeBandungSheet(params.days);
 
     return ContentService.createTextOutput(
       JSON.stringify({ status: 'success' })
