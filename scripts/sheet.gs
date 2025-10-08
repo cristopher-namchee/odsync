@@ -1,6 +1,8 @@
 const glairSheet = '1yKOIFZ7R67XCjiMc6DwwJicHeLx5iv91lVKAYuYrWuU';
 const bandungSheet = '1XObyMQdM9aFkbyAyg8vMDyYcz9d_WtmlZq3sMihfFQM';
 
+const CLONE_SHEET = '1xt8InCmYc41-9OEr28he4fXr3wYxushskh6bbI3RBMc';
+
 const SLICE_COUNT = 3;
 const SAMPLE = '?user=2007226&days=0&days=1&days=2&today=2025-10-03';
 
@@ -48,7 +50,7 @@ function parseParams(params) {
 }
 
 function writeGlairSheet(user, today, days) {
-  const ss = SpreadsheetApp.openById(glairSheet);
+  const ss = SpreadsheetApp.openById(CLONE_SHEET);
   const sheet = ss.getSheetByName('WFO NEW');
 
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
@@ -57,8 +59,6 @@ function writeGlairSheet(user, today, days) {
     .filter(val => !isNaN(val.getTime()))
     .map(date => `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`);
 
-  const searches = [];
-
   const weekColumns = [...Array(5).keys()].map(day => {
     const targetDate = new Date(today);
     targetDate.setDate(targetDate.getDate() + day);
@@ -66,24 +66,24 @@ function writeGlairSheet(user, today, days) {
     const stringDate = `${targetDate.getMonth() + 1}/${targetDate.getDate()}/${targetDate.getFullYear()}`;
     const idx = headers.indexOf(stringDate);
 
-    return idx + SLICE_COUNT;
+    return idx + SLICE_COUNT + 1; // convert to 1-based index
   });
 
   const wfoColumns = days.map(day => weekColumns[day]);
 
   // find filled rows
   const cell = sheet.createTextFinder(user).findNext();
+
+  if (!cell) {
+    throw new Error('Cannot find corresponding employee.');
+  }
+
   const row = cell.getRow();
 
-  const weekCells = weekColumns.map(col => `${columnToLetter(col)}${row}`); 
-  const wfoCells = wfoColumns.map(col => `${columnToLetter(col)}${row}`);
-
-  return {
-    weekCells,
-    today,
-    weekColumns,
-    wfoCells,
-  };
+  for (const column of weekColumns) {
+    const range = sheet.getRange(row, column);
+    range.setValue(wfoColumns.includes(column) ? true : false);
+  }
 }
 
 function doGet(e) {
@@ -93,10 +93,10 @@ function doGet(e) {
     const nextWeek = params.today;
     nextWeek.setDate(nextWeek.getDate() + (1 + 7 - nextWeek.getDay()) % 7);
 
-    const targetCells = writeGlairSheet(params.user, nextWeek, params.days);
+    writeGlairSheet(params.user, nextWeek, params.days);
 
     return ContentService.createTextOutput(
-      JSON.stringify({ status: 'success', message: JSON.stringify(targetCells, null, 2) })
+      JSON.stringify({ status: 'success' })
     ).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
     return ContentService.createTextOutput(
