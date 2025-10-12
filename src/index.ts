@@ -5,6 +5,10 @@ import type { Env } from './env';
 const app = new Hono<{ Bindings: CloudflareBindings }>();
 
 app.post('/slack/callback', (ctx) => {
+  const body = ctx.req.parseBody();
+
+  console.log(body);
+
   return ctx.json({ foo: 'bar' });
 });
 
