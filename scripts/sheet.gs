@@ -1,12 +1,8 @@
 const glairSheet = '1yKOIFZ7R67XCjiMc6DwwJicHeLx5iv91lVKAYuYrWuU';
 const bandungSheet = '1XObyMQdM9aFkbyAyg8vMDyYcz9d_WtmlZq3sMihfFQM';
 
-const CLONE_SHEET = '1xt8InCmYc41-9OEr28he4fXr3wYxushskh6bbI3RBMc';
-
 const GlairColumnOffset = 3;
 const BandungColumnOffset = 4;
-
-const SAMPLE = '?user=2007226&days=0&days=1&days=2&today=2025-10-03';
 
 function parseParams(params) {
   const user = (params?.user ?? [])[0] ?? '';
@@ -39,7 +35,7 @@ function parseParams(params) {
 }
 
 function writeGlairSheet(user, today, days) {
-  const ss = SpreadsheetApp.openById(CLONE_SHEET);
+  const ss = SpreadsheetApp.openById(glairSheet);
   const sheet = ss.getSheets()[0];
 
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
