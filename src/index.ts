@@ -1,15 +1,28 @@
 import { Hono } from 'hono';
+
 import { formatDate, getNextWeek } from './date';
 import type { Env } from './env';
+import type { MultiSelectActionPayload } from './types';
 
-const app = new Hono<{ Bindings: CloudflareBindings }>();
+const app = new Hono<{ Bindings: Env }>();
 
-app.post('/slack/callback', (ctx) => {
-  const body = ctx.req.parseBody();
+app.post('/slack/callback', async (ctx) => {
+  const { actions } = (await ctx.req.json()) as MultiSelectActionPayload;
 
-  console.log(body);
+  const values = actions[0].selected_options.map((opt) => opt.value);
 
-  return ctx.json({ foo: 'bar' });
+  const baseUrl = new URL(ctx.env.SCRIPT_URL);
+  const params = new URLSearchParams();
+
+  for (const value of values) {
+    params.append('days', value);
+  }
+
+  params.append('user', ctx.env.EMPLOYEE_ID);
+
+  const response = await fetch(ctx.env.SCRIPT_URL, {
+    method: 'GET',
+  });
 });
 
 async function aaa(env: Env) {
@@ -59,7 +72,7 @@ async function aaa(env: Env) {
     },
   ];
 
-  const response = await fetch('https://slack.com/api/chat.postMessage', {
+  await fetch('https://slack.com/api/chat.postMessage', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${env.SLACK_BOT_TOKEN}`,
