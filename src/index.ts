@@ -6,26 +6,35 @@ import type { MultiSelectActionPayload } from './types';
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.post('/slack/callback', async (ctx) => {
-  const { actions } = (await ctx.req.json()) as MultiSelectActionPayload;
+app.post('/slack/callback', async (c) => {
+  const { actions } = (await c.req.json()) as MultiSelectActionPayload;
 
   const values = actions[0].selected_options.map((opt) => opt.value);
 
-  const baseUrl = new URL(ctx.env.SCRIPT_URL);
+  const baseUrl = new URL(c.env.SCRIPT_URL);
   const params = new URLSearchParams();
 
   for (const value of values) {
     params.append('days', value);
   }
 
-  params.append('user', ctx.env.EMPLOYEE_ID);
+  params.append('user', c.env.EMPLOYEE_ID);
+  baseUrl.search = params.toString();
 
-  const response = await fetch(ctx.env.SCRIPT_URL, {
-    method: 'GET',
+  const response = await fetch(baseUrl);
+
+  if (!response.ok) {
+    return c.notFound();
+  }
+
+  return c.json({
+    channel: c.env.SLACK_USER,
+    text: '✅ WFO sheet successfully synchronized!',
+    emoji: true,
   });
 });
 
-async function aaa(env: Env) {
+async function sendForm(env: Env) {
   const referenceDate = new Date();
   const nextWeek = getNextWeek(referenceDate);
 
@@ -63,7 +72,7 @@ async function aaa(env: Env) {
                 type: 'plain_text',
                 text: formatDate(targetDate),
               },
-              value: inc.toString(),
+              value: `${targetDate.getFullYear()}-${targetDate.getMonth() + 1}-${targetDate.getDate()}`,
             };
           }),
         ],
@@ -88,10 +97,10 @@ async function aaa(env: Env) {
 export default {
   fetch: app.fetch,
   scheduled: async (
-    controller: ScheduledController,
+    _: ScheduledController,
     env: Env,
     ctx: ExecutionContext,
   ) => {
-    await aaa(env);
+    ctx.waitUntil(sendForm(env));
   },
 };
