@@ -1,21 +1,7 @@
-```txt
-npm install
-npm run dev
-```
+# WFO Day Synchronizer
 
-```txt
-npm run deploy
-```
+A slack bot that helps you synchronize your WFO day for next week.
 
-[For generating/synchronizing types based on your Worker configuration run](https://developers.cloudflare.com/workers/wrangler/commands/#types):
+## License
 
-```txt
-npm run cf-typegen
-```
-
-Pass the `CloudflareBindings` as generics when instantiation `Hono`:
-
-```ts
-// src/index.ts
-const app = new Hono<{ Bindings: CloudflareBindings }>()
-```
+This project is licensed under the [Unlicense](./LICENSE)
