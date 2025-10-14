@@ -19,7 +19,13 @@
 		"SLACK_USER": "U05AH0GJ6DD",
 		"EMPLOYEE_ID": "2007226",
 		"SCRIPT_URL": "https://script.google.com/macros/s/AKfycbw_ldArLiyvb7AyDmqDrdIlmuznDdLrq-ew3qu8BylTHyOvx6tIlF1TCLvN-SMTMcgc5A/exec"
-	}
+	},
+	"kv_namespaces": [
+		{
+			"binding": "USER_MAP",
+			"id": "6abbdd03039b4e39a675251ef97d83f7"
+		}
+	]
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

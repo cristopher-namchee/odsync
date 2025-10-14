@@ -3,6 +3,8 @@ export interface Env {
   SLACK_USER: string;
   EMPLOYEE_ID: string;
   SCRIPT_URL: string;
+
+  USER_MAP: KVNamespace;
 }
 
 interface ActionUserPayload {
