@@ -7,7 +7,15 @@ import type { MultiSelectActionPayload } from './types';
 const app = new Hono<{ Bindings: Env }>();
 
 app.post('/slack/callback', async (c) => {
-  const { actions } = (await c.req.json()) as MultiSelectActionPayload;
+  const text = await c.req.text();
+  const reqParams = new URLSearchParams(text);
+
+  const rawPayload = reqParams.get('payload');
+  if (!rawPayload) {
+    return c.notFound();
+  }
+
+  const { actions } = JSON.parse(rawPayload) as MultiSelectActionPayload;
 
   const values = actions[0].selected_options.map((opt) => opt.value);
 
