@@ -29,18 +29,14 @@ app.post('/slack/callback', async (c) => {
   params.append('user', c.env.EMPLOYEE_ID);
   baseUrl.search = params.toString();
 
-  const response = await fetch(baseUrl);
-
-  if (!response.ok) {
-    return c.notFound();
-  }
+  c.executionCtx.waitUntil(fetch(baseUrl));
 
   return c.json({
     text: '✅ WFO sheet successfully synchronized!',
   });
 });
 
-async function sendForm(env: Env) {
+export async function sendForm(env: Env) {
   const referenceDate = new Date();
   const nextWeek = getNextWeek(referenceDate);
 
