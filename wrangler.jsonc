@@ -14,6 +14,11 @@
 		"crons": [
 			"0 9 * * 6"
 		]
+	},
+	"vars": {
+		"SLACK_USER": "U05AH0GJ6DD",
+		"EMPLOYEE_ID": "2007226",
+		"SCRIPT_URL": "https://script.google.com/macros/s/AKfycbw_ldArLiyvb7AyDmqDrdIlmuznDdLrq-ew3qu8BylTHyOvx6tIlF1TCLvN-SMTMcgc5A/exec"
 	}
 	/**
 	 * Smart Placement
