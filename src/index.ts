@@ -32,14 +32,11 @@ app.post('/slack/callback', async (c) => {
   const response = await fetch(baseUrl);
 
   if (!response.ok) {
-    console.log(response);
     return c.notFound();
   }
 
   return c.json({
-    channel: c.env.SLACK_USER,
     text: '✅ WFO sheet successfully synchronized!',
-    emoji: true,
   });
 });
 
