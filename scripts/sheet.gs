@@ -2,10 +2,34 @@ const employeeId = PropertiesService.getScriptProperties().getProperty('EMPLOYEE
 const glairSheet = PropertiesService.getScriptProperties().getProperty('GLAIR_SHEET_ID');
 const bandungSheet = PropertiesService.getScriptProperties().getProperty('BANDUNG_SHEET_ID');
 
+const Location = {
+  Home: 'HOME',
+  Office: 'OFFICE'
+};
+
 const ColumnOffset = 3;
 
+function getDateLocation(date) {
+  const events = CalendarApp.getEventsForDay(date);
+  const workingLocation = events.find(event => event.getEventType() === CalendarApp.EventType.WORKING_LOCATION);
+
+  if (!workingLocation) {
+    return Location.Home;
+  }
+
+  // for some reason, WORKING_LOCATION returns information via title instead of location
+  return workingLocation.getTitle() === Location.Home ? Location.Home : Location.Office;
+}
+
+// stolen from https://stackoverflow.com/questions/33078406/getting-the-date-of-next-monday
+function getNextMonday() {
+  const today = new Date(); 
+  today.setDate(today.getDate() + (1 + 7 - today.getDay()) % 7);
+
+  return today;
+}
+
 function getColumnFromDate(date, headers) {
-  CalendarApp.Weekday
   const targetDate = new Date(date);
   const stringDate = `${targetDate.getMonth() + 1}/${targetDate.getDate()}/${targetDate.getFullYear()}`;
   const idx = headers.indexOf(stringDate);
@@ -87,6 +111,8 @@ function executeScheduledTask() {
     if (!employeeId || !glairSheet) {
       throw new Error('It seems like you haven\'t set up the script properly. Please follow the instruction from the README file carefully.');
     }
+
+    const referenceDate = getNextMonday();
 
     GmailApp.sendEmail(self, '✅ WFO sheet has been successfully synchronized');
   } catch (err) {
