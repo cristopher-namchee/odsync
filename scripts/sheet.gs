@@ -1,12 +1,13 @@
-const glairSheet = "1yKOIFZ7R67XCjiMc6DwwJicHeLx5iv91lVKAYuYrWuU";
+const employeeId = PropertiesService.getScriptProperties().getProperty('EMPLOYEE_ID');
+const glairSheet = PropertiesService.getScriptProperties().getProperty('GLAIR_SHEET_ID');
+const bandungSheet = PropertiesService.getScriptProperties().getProperty('BANDUNG_SHEET_ID');
 
 const ColumnOffset = 3;
 
 function getColumnFromDate(date, headers) {
+  CalendarApp.Weekday
   const targetDate = new Date(date);
-  const stringDate = `${
-    targetDate.getMonth() + 1
-  }/${targetDate.getDate()}/${targetDate.getFullYear()}`;
+  const stringDate = `${targetDate.getMonth() + 1}/${targetDate.getDate()}/${targetDate.getFullYear()}`;
   const idx = headers.indexOf(stringDate);
 
   return idx + ColumnOffset + 1; // convert to 1-based index
@@ -19,19 +20,19 @@ function isValidDate(dateString) {
 }
 
 function parseParams(params) {
-  const user = (params?.user ?? [])[0] ?? "";
+  const user = (params?.user ?? [])[0] ?? '';
   const days = params?.days ?? [];
 
   if (!user.trim()) {
-    throw new Error("Invalid user ID");
+    throw new Error('Invalid user ID');
   }
 
-  if (!Array.isArray(days) || days.some((day) => !isValidDate(day))) {
-    throw new Error("Invalid WFO day(s)");
+  if (!Array.isArray(days) || days.some(day => !isValidDate(day))) {
+    throw new Error('Invalid WFO day(s)');
   }
 
   return {
-    days: days.sort().map((day) => new Date(day)),
+    days: days.sort().map(day => new Date(day)),
     user,
   };
 }
@@ -50,30 +51,28 @@ function writeGlairSheet(user, days) {
   // find filled rows
   const cell = sheet.createTextFinder(user).findNext();
   if (!cell) {
-    throw new Error("Cannot find corresponding employee in sheet.");
+    throw new Error('Cannot find corresponding employee in sheet.');
   }
 
   const row = cell.getRow();
   const refDate = getMondayOfTheWeek(days[0]);
 
-  const headers = sheet
-    .getRange(1, 1, 1, sheet.getLastColumn())
-    .getValues()[0]
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
     .slice(ColumnOffset)
-    .map((val) => new Date(val))
-    .filter((val) => !isNaN(val.getTime()))
-    .map(
-      (date) => `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
-    );
+    .map(val => new Date(val))
+    .filter(val => !isNaN(val.getTime()))
+    .map(date => `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`);
 
   const weekColumns = Array.from({ length: 5 }, (_, day) =>
     getColumnFromDate(
       new Date(refDate).setDate(new Date(refDate).getDate() + day),
-      headers
+      headers,
     )
   );
 
-  const wfoColumns = days.map((day) => getColumnFromDate(day, headers));
+  const wfoColumns = days.map(day =>
+    getColumnFromDate(day, headers)
+  );
 
   for (const column of weekColumns) {
     const range = sheet.getRange(row, column);
@@ -81,22 +80,16 @@ function writeGlairSheet(user, days) {
   }
 }
 
-function doGet(e) {
+function executeScheduledTask() {
+  const self = Session.getActiveUser().getEmail();
+
   try {
-    const params = parseParams(e.parameters);
+    if (!employeeId || !glairSheet) {
+      throw new Error('It seems like you haven\'t set up the script properly. Please follow the instruction from the README file carefully.');
+    }
 
-    writeGlairSheet(params.user, params.days);
-
-    return ContentService.createTextOutput(
-      JSON.stringify({ status: "success" })
-    ).setMimeType(ContentService.MimeType.JSON);
+    GmailApp.sendEmail(self, '✅ WFO sheet has been successfully synchronized');
   } catch (err) {
-    return ContentService.createTextOutput(
-      JSON.stringify({
-        status: "error",
-        message: err.message,
-        mail: Session.getEffectiveUser().getEmail(),
-      })
-    ).setMimeType(ContentService.MimeType.JSON);
+    GmailApp.sendEmail(self, '⚠️ Failed to synchronize WFO sheet', 'The script encountered the following issue: ');
   }
 }
