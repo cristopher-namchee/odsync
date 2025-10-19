@@ -9,16 +9,34 @@ const Location = {
 
 const ColumnOffset = 3;
 
+function formatDate(date) {
+  return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+}
+
+function isValidDate(date) {
+  return !isNaN(new Date(date).getTime());
+}
+
 function getDateLocation(date) {
   const events = CalendarApp.getEventsForDay(date);
   const workingLocation = events.find(event => event.getEventType() === CalendarApp.EventType.WORKING_LOCATION);
 
+  // assume Home if not filled
   if (!workingLocation) {
     return Location.Home;
   }
 
   // for some reason, WORKING_LOCATION returns information via title instead of location
   return workingLocation.getTitle() === Location.Home ? Location.Home : Location.Office;
+}
+
+function getWorkweekLocations(date) {
+  return [...Array(5).keys()].reduce((acc, inc) => {
+    const targetDate = new Date(date);
+    targetDate.setDate(targetDate.getDate() + inc);
+
+    acc[formatDate(targetDate)] = getDateLocation(targetDate);
+  });
 }
 
 // stolen from https://stackoverflow.com/questions/33078406/getting-the-date-of-next-monday
@@ -29,79 +47,39 @@ function getNextMonday() {
   return today;
 }
 
-function getColumnFromDate(date, headers) {
-  const targetDate = new Date(date);
-  const stringDate = `${targetDate.getMonth() + 1}/${targetDate.getDate()}/${targetDate.getFullYear()}`;
-  const idx = headers.indexOf(stringDate);
-
-  return idx + ColumnOffset + 1; // convert to 1-based index
-}
-
-function isValidDate(dateString) {
-  const probablyDate = new Date(dateString);
-
-  return !isNaN(probablyDate.getTime());
-}
-
-function parseParams(params) {
-  const user = (params?.user ?? [])[0] ?? '';
-  const days = params?.days ?? [];
-
-  if (!user.trim()) {
-    throw new Error('Invalid user ID');
-  }
-
-  if (!Array.isArray(days) || days.some(day => !isValidDate(day))) {
-    throw new Error('Invalid WFO day(s)');
-  }
-
-  return {
-    days: days.sort().map(day => new Date(day)),
-    user,
-  };
-}
-
-function getMondayOfTheWeek(date) {
-  const monday = new Date(date);
-  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
-
-  return monday;
-}
-
-function writeGlairSheet(user, days) {
+function updateGlairSheet(locations) {
   const ss = SpreadsheetApp.openById(glairSheet);
   const sheet = ss.getSheets()[0];
 
   // find filled rows
-  const cell = sheet.createTextFinder(user).findNext();
+  const cell = sheet.createTextFinder(employeeId).findNext();
   if (!cell) {
-    throw new Error('Cannot find corresponding employee in sheet.');
+    throw new Error('Cannot find corresponding employee in sheet. Please double-check the EMPLOYEE_ID variable.');
   }
 
   const row = cell.getRow();
-  const refDate = getMondayOfTheWeek(days[0]);
 
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
-    .slice(ColumnOffset)
-    .map(val => new Date(val))
-    .filter(val => !isNaN(val.getTime()))
-    .map(date => `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`);
+    .map(val => isValidDate(val) ? formatDate(new Date(val)) : val);
 
-  const weekColumns = Array.from({ length: 5 }, (_, day) =>
-    getColumnFromDate(
-      new Date(refDate).setDate(new Date(refDate).getDate() + day),
-      headers,
-    )
-  );
+  for (const [date, location] of Object.entries(locations)) {
+    const column = headers.findIndex(date);
+    if (!column) {
+      throw new Error('WFO sheet is outdated. Please sync the WFO sheet manually.');
+    }
 
-  const wfoColumns = days.map(day =>
-    getColumnFromDate(day, headers)
-  );
-
-  for (const column of weekColumns) {
-    const range = sheet.getRange(row, column);
-    range.setValue(wfoColumns.includes(column) ? true : false);
+    // Google Spreadsheet is 1-based, in contrast of 0-based that we use to store arrays
+    const range = sheet.getRange(row, column + 1);
+    range.setValue(location === Location.Office ? true : false);
   }
+}
+
+// Really tricky, might not work
+function getName() {
+  const emailSubject = GmailApp.getDrafts()[0].getMessage().getHeader("From");
+  const rawName = emailSubject.match(/"([^"]*)"/)[1];
+
+  return rawName.replace(/\.+/, '').trim();
 }
 
 function executeScheduledTask() {
@@ -113,6 +91,12 @@ function executeScheduledTask() {
     }
 
     const referenceDate = getNextMonday();
+    const workweekLocations = getWorkweekLocations(referenceDate);
+
+    updateGlairSheet(workweekLocations);
+    if (bandungSheet) {
+      updateBandungSheet(workweekLocations);
+    }
 
     GmailApp.sendEmail(self, '✅ WFO sheet has been successfully synchronized');
   } catch (err) {
