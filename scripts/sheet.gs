@@ -1,6 +1,8 @@
 const employeeId = PropertiesService.getScriptProperties().getProperty('EMPLOYEE_ID');
-const glairSheet = PropertiesService.getScriptProperties().getProperty('GLAIR_SHEET_ID');
 const bandungSheet = PropertiesService.getScriptProperties().getProperty('BANDUNG_SHEET_ID');
+
+// this should be static
+const glairSheet = '1yKOIFZ7R67XCjiMc6DwwJicHeLx5iv91lVKAYuYrWuU';
 
 const Location = {
   Home: 'HOME',
@@ -51,13 +53,13 @@ function updateGlairSheet(locations) {
   const ss = SpreadsheetApp.openById(glairSheet);
   const sheet = ss.getSheets()[0];
 
-  // find filled rows
-  const cell = sheet.createTextFinder(employeeId).findNext();
-  if (!cell) {
-    throw new Error('Cannot find corresponding employee in sheet. Please double-check the EMPLOYEE_ID variable.');
+  // find user's row
+  const userCell = sheet.createTextFinder(employeeId).findNext();
+  if (!userCell) {
+    throw new Error('Cannot find corresponding employee in GLAIR sheet. Please double-check the EMPLOYEE_ID variable.');
   }
 
-  const row = cell.getRow();
+  const row = userCell.getRow();
 
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
     .map(val => isValidDate(val) ? formatDate(new Date(val)) : val);
@@ -82,11 +84,23 @@ function getName() {
   return rawName.replace(/\.+/, '').trim();
 }
 
+function updateBandungSheet() {
+  const ss = SpreadsheetApp.openById(bandungSheet);
+  const sheet = ss.getSheets()[0];
+
+  const userCell = sheet.createTextFinder(getName()).findNext();
+  if (!userCell) {
+    throw new Error('Cannot find corresponding employee in Bandung Sheet. getName() might not work properly. Please patch your own script with the correct value');
+  }
+
+  const row = userCell.getRow();
+}
+
 function executeScheduledTask() {
   const self = Session.getActiveUser().getEmail();
 
   try {
-    if (!employeeId || !glairSheet) {
+    if (!employeeId) {
       throw new Error('It seems like you haven\'t set up the script properly. Please follow the instruction from the README file carefully.');
     }
 
