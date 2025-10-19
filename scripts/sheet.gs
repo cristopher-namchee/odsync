@@ -38,7 +38,7 @@ function getWorkweekLocations(date) {
     targetDate.setDate(targetDate.getDate() + inc);
 
     acc[formatDate(targetDate)] = getDateLocation(targetDate);
-  });
+  }, {});
 }
 
 // stolen from https://stackoverflow.com/questions/33078406/getting-the-date-of-next-monday
