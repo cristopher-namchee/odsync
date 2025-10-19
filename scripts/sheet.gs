@@ -38,6 +38,8 @@ function getWorkweekLocations(date) {
     targetDate.setDate(targetDate.getDate() + inc);
 
     acc[formatDate(targetDate)] = getDateLocation(targetDate);
+
+    return acc;
   }, {});
 }
 
