@@ -133,7 +133,7 @@ function synchronizeWFOSheet() {
 
     GmailApp.sendEmail(self, '✅ [WFO Sheet] Synchronization Successful', '', {
       htmlBody: `
-        <div style="font-family: 'Segoe UI', Roboto, Arial, sans-serif; color: #333; line-height: 1.6;">
+        <div style="font-family: Helvetica, Arial, sans-serif; color: #333; line-height: 1.6;">
           <h2>✅ Synchronization Successful</h2>
 
           <p><b>WFO Sheet Synchronizer</b> has successfully synchronized your ${bandungSheet ? '<b>GLAIR</b> and <b>Bandung</b>' : '<b>GLAIR</b>'} WFO sheets with the following parameters:</p>
@@ -203,7 +203,7 @@ function sendSynchronizationReminder() {
 
   GmailApp.sendEmail(self, '⏱️ [WFO Sheet] Synchronization Reminder', '', {
     htmlBody: `
-      <div style="font-family: 'Segoe UI', Roboto, Arial, sans-serif; color: #333; line-height: 1.6;">
+      <div style="font-family: Helvetica, Arial, sans-serif; color: #333; line-height: 1.6;">
         <h2>⏱️ Synchronization Reminder</h2>
 
         <p><b>WFO Sheet Synchronizer</b> is about to perform synchronization to ${bandungSheet ? '<b>GLAIR</b> and <b>Bandung</b>' : '<b>GLAIR</b>'} WFO sheets.</p>
