@@ -5,11 +5,11 @@ const bandungSheet = PropertiesService.getScriptProperties().getProperty('BANDUN
 const glairSheet = '1yKOIFZ7R67XCjiMc6DwwJicHeLx5iv91lVKAYuYrWuU';
 
 const Location = {
-  Home: 'HOME',
-  Office: 'OFFICE'
+  Home: 'Home',
+  Office: 'Office'
 };
 
-const ColumnOffset = 3;
+const BandungColumnOffset = 5;
 
 function formatDate(date) {
   return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
@@ -86,9 +86,9 @@ function getName() {
   return rawName.replace(/\.+/, '').trim();
 }
 
-function updateBandungSheet() {
+function updateBandungSheet(locations) {
   const ss = SpreadsheetApp.openById(bandungSheet);
-  const sheet = ss.getSheets()[0];
+  const sheet = ss.getSheets()[3];
 
   const userCell = sheet.createTextFinder(getName()).findNext();
   if (!userCell) {
@@ -96,6 +96,14 @@ function updateBandungSheet() {
   }
 
   const row = userCell.getRow();
+
+  for (const [date, location] of Object.entries(locations)) {
+    // Monday starts at 1, so we substract by 1 first, then add the column offset
+    const day = new Date(date).getDay() - 1 + BandungColumnOffset;
+
+    const range = sheet.getRange(row, day);
+    range.setValue(location === Location.Office ? true : false);
+  }
 }
 
 function executeScheduledTask() {
@@ -116,6 +124,6 @@ function executeScheduledTask() {
 
     GmailApp.sendEmail(self, '✅ WFO sheet has been successfully synchronized');
   } catch (err) {
-    GmailApp.sendEmail(self, '⚠️ Failed to synchronize WFO sheet', 'The script encountered the following issue: ');
+    GmailApp.sendEmail(self, '⚠️ Failed to synchronize WFO sheet', `The script encountered the following issue:\n<i>${err.message}</i>`);
   }
 }
